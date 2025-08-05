@@ -15,11 +15,11 @@ public class XmlProcessorResource {
     @POST
     public Response processXml(InputStream inputXmlStream) {
         try {
-            InputStream outputXml = mapperService.process(inputXmlStream);
-            return Response.ok(outputXml).build();
+            mapperService.process(inputXmlStream);
+            return Response.ok().build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Error: " + e.getMessage()).build();
+                    .entity("Error: " + e.toString()).build();
         }
     }
 }

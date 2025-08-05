@@ -48,6 +48,10 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jaxb</artifactId>
         </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -115,20 +119,37 @@
                         <goals>
                             <goal>xjc</goal>
                         </goals>
+                        <configuration>
+                            <xjbSources>
+                                <xjbSource>src/main/resources/global.xjb</xjbSource>
+                            </xjbSources>
+                            <sources>
+                                <source>src/main/resources/IPP_SYNC_HDR.xsd</source>
+                                <source>src/main/resources/FINASTRA.xsd</source>
+                            </sources>
+                            <outputDirectory>${basedir}/src/main/java</outputDirectory>
+                            <clearOutputDir>false</clearOutputDir>
+                            <packageName>org.fin_avq_gen</packageName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>xjc2</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <xjbSources>
+                                <xjbSource>src/main/resources/global.xjb</xjbSource>
+                            </xjbSources>
+                            <sources>
+                                <source>src/main/resources/PACS008.xsd</source>
+                            </sources>
+                            <outputDirectory>${basedir}/src/main/java</outputDirectory>
+                            <clearOutputDir>false</clearOutputDir>
+                            <packageName>org.fin_avq_gen.pacs</packageName>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <xjbSources>
-                        <xjbSource>src/main/resources/global.xjb</xjbSource>
-                    </xjbSources>
-                    <sources>
-                        <source>src/main/resources/output.xsd</source>
-                        <source>src/main/resources/output.xsd</source>
-                        <source>src/main/resources/output.xsd</source>
-                    </sources>
-                    <outputDirectory>${basedir}/src/main/java</outputDirectory>
-                    <clearOutputDir>false</clearOutputDir>
-                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Clone of ip.pay_sync_hdr -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Hdr">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Cost" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Amt" type="xs:decimal"/>
+              <xs:element name="Curry" type="xs:string"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Direction">
+          <xs:simpleType>
+             <xs:restriction base="xs:string">
+                <xs:enumeration value="In"/>
+                <xs:enumeration value="Out"/>
+             </xs:restriction>
+           </xs:simpleType>
+        </xs:element>
+        <xs:element name="Ident" minOccurs="1" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Tp" type="xs:string"/>
+              <xs:element name="Val" type="xs:string"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ValDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="IppHist" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Acty" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="ActyStatus" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="ActyDet" minOccurs="0" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="Name" type="xs:string"/>
+                          <xs:element name="Value" type="xs:string"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="Name" type="xs:string" use="required"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
