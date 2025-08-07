@@ -2,49 +2,90 @@ package lukasz;
 
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
-import org.fin_avq_gen.InstantPayment;
+import org.fin_avq_gen.ip.InstantPayment;
 
 import java.io.StringWriter;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class XMLFormatter {
+
+    private static final Pattern INSTANT_PAYMENT_TAG_PATTERN = Pattern.compile("<[^:]*:?InstantPayment([^>]*)>");
+    private static final Pattern XMLNS_PATTERN = Pattern.compile("xmlns:(\\w+)=\"([^\"]*)\"");
+    private static final Pattern DOCUMENT_TAG_PATTERN = Pattern.compile("<(\\w+:)?Document[^>]*>");
+    private static final Pattern NS_PREFIX_PATTERN = Pattern.compile("</?ns\\d+:");
+
     public static String getXmlOut(Marshaller marshaller, InstantPayment instantPayment) throws JAXBException {
+        String rawXml = marshalInstantPayment(marshaller, instantPayment);
+        Optional<XmlNamespaces> namespacesOpt = extractNamespaceUris(rawXml);
+
+        if (namespacesOpt.isEmpty()) {
+            return rawXml;
+        }
+
+        XmlNamespaces namespaces = namespacesOpt.get();
+
+        String cleanedXml = removeInstantPaymentNamespace(rawXml);
+        cleanedXml = replaceDocumentTag(cleanedXml, namespaces);
+        cleanedXml = removeGeneratedPrefixes(cleanedXml);
+
+        return cleanedXml;
+    }
+
+    private static String marshalInstantPayment(Marshaller marshaller, InstantPayment instantPayment) throws JAXBException {
         StringWriter writer = new StringWriter();
         marshaller.marshal(instantPayment, writer);
-        String xmlOut = writer.toString();
+        return writer.toString();
+    }
 
-        String nsUri1 = null;
-        String nsUri2 = null;
-
-        Pattern tagPattern = Pattern.compile("<[^:]*:?InstantPayment([^>]*)>");
-        Matcher tagMatcher = tagPattern.matcher(xmlOut);
-
-        if (tagMatcher.find()) {
-            String tagAttrs = tagMatcher.group(1);
-
-            Pattern xmlnsPattern = Pattern.compile("xmlns:(\\w+)=\"([^\"]*)\"");
-            Matcher xmlnsMatcher = xmlnsPattern.matcher(tagAttrs);
-
-            if (xmlnsMatcher.find()) {
-                nsUri1 = xmlnsMatcher.group(2);
-            }
-            if (xmlnsMatcher.find()) {
-                nsUri2 = xmlnsMatcher.group(2);
-            }
-
-            xmlOut = xmlOut.replaceFirst("<[^:]*:?InstantPayment[^>]*>", "<InstantPayment>");
+    private static Optional<XmlNamespaces> extractNamespaceUris(String xml) {
+        Matcher tagMatcher = INSTANT_PAYMENT_TAG_PATTERN.matcher(xml);
+        if (!tagMatcher.find()) {
+            return Optional.empty();
         }
 
-        if (nsUri2 != null && nsUri1 != null) {
-            xmlOut = xmlOut.replaceAll(
-                    "<(\\w+:)?Document[^>]*>",
-                    "<Document xmlns=\"" + nsUri2 + "\" xmlns:xsi=\"" + nsUri1 + "\">"
-            );
+        String tagAttributes = tagMatcher.group(1);
+        Matcher xmlnsMatcher = XMLNS_PATTERN.matcher(tagAttributes);
+
+        String xsiUri = null;
+        String defaultUri = null;
+
+        if (xmlnsMatcher.find()) {
+            xsiUri = xmlnsMatcher.group(2);
+        }
+        if (xmlnsMatcher.find()) {
+            defaultUri = xmlnsMatcher.group(2);
         }
 
-        xmlOut = xmlOut.replaceAll("</?ns\\d+:", "<");
+        if (xsiUri != null && defaultUri != null) {
+            return Optional.of(new XmlNamespaces(defaultUri, xsiUri));
+        }
 
-        return xmlOut;
+        return Optional.empty();
+    }
+
+    private static String removeInstantPaymentNamespace(String xml) {
+        return INSTANT_PAYMENT_TAG_PATTERN.matcher(xml)
+                .replaceFirst("<InstantPayment>");
+    }
+
+    private static String replaceDocumentTag(String xml, XmlNamespaces namespaces) {
+        return DOCUMENT_TAG_PATTERN.matcher(xml)
+                .replaceFirst("<Document xmlns=\"" + namespaces.defaultUri + "\" xmlns:xsi=\"" + namespaces.xsiUri + "\">");
+    }
+
+    private static String removeGeneratedPrefixes(String xml) {
+        return NS_PREFIX_PATTERN.matcher(xml).replaceAll("<");
+    }
+
+    private static class XmlNamespaces {
+        String defaultUri;
+        String xsiUri;
+
+        XmlNamespaces(String defaultUri, String xsiUri) {
+            this.defaultUri = defaultUri;
+            this.xsiUri = xsiUri;
+        }
     }
 }
