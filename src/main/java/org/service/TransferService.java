@@ -1,10 +1,11 @@
-package lukasz;
+package org.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.*;
 
+import org.config.TransferConfig;
 import org.fin_avq_gen.FndtMsgType;
 import org.fin_avq_gen.Hdr;
 import org.fin_avq_gen.ip.InstantPayment;

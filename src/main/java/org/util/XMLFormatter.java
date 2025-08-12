@@ -1,4 +1,4 @@
-package lukasz;
+package org.util;
 
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
@@ -16,7 +16,7 @@ public class XMLFormatter {
     private static final Pattern DOCUMENT_TAG_PATTERN = Pattern.compile("<(\\w+:)?Document[^>]*>");
     private static final Pattern NS_PREFIX_PATTERN = Pattern.compile("</?ns\\d+:");
 
-    public static String getXmlOut(Marshaller marshaller, InstantPayment instantPayment) throws JAXBException {
+    public static String getXmlOut(Marshaller marshaller, InstantPayment instantPayment, boolean removePrefixes) throws JAXBException {
         String rawXml = marshalInstantPayment(marshaller, instantPayment);
         Optional<XmlNamespaces> namespacesOpt = extractNamespaceUris(rawXml);
 
@@ -28,10 +28,15 @@ public class XMLFormatter {
 
         String cleanedXml = removeInstantPaymentNamespace(rawXml);
         cleanedXml = replaceDocumentTag(cleanedXml, namespaces);
-        cleanedXml = removeGeneratedPrefixes(cleanedXml);
+
+        if (removePrefixes) {
+            cleanedXml = removeGeneratedPrefixes(cleanedXml);
+        }
 
         return cleanedXml;
     }
+
+
 
     private static String marshalInstantPayment(Marshaller marshaller, InstantPayment instantPayment) throws JAXBException {
         StringWriter writer = new StringWriter();

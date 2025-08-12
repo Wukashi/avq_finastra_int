@@ -1,4 +1,4 @@
-package lukasz;
+package org.exception;
 
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.MediaType;
