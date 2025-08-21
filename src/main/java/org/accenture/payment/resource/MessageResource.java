@@ -15,16 +15,20 @@ public class MessageResource {
 
 
     @POST
-    @Path("/multipart")
+    @Path("/send-multipart")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_XML)
-    public Response processServiceMultipart(MultipartFormDataInput mpfData) {
-        try {
-            String resp = messageServiceMultipart.processMultipart(mpfData);
-            return Response.ok(resp).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Multipart error: " + e.toString()).build();
-        }
+    public void send(String queue, MultipartFormDataInput mpfData){
+        messageServiceMultipart.sendMessage("testQueue", mpfData);
     }
+//    public Response processServiceMultipart(M ultipartFormDataInput mpfData) {
+//        try {
+////            String resp = messageServiceMultipart.processMultipart(mpfData);
+//            Response resp = messageServiceMultipart.sendMessage("asd", mpfData);
+//            return Response.ok(resp).build();
+//        } catch (Exception e) {
+//            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+//                    .entity("Multipart error: " + e.toString()).build();
+//        }
+//    }
 }
