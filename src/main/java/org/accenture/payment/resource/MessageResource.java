@@ -4,30 +4,21 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.accenture.payment.service.MessageSender;
 import org.accenture.payment.service.MessageServiceJsonBase64;
-import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
-import org.accenture.payment.service.MessageServiceMultipart;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 
 @Path("/")
 public class MessageResource {
     @Inject
-    MessageServiceMultipart messageServiceMultipart;
+    MessageServiceJsonBase64 messageServiceJsonBase64;
 
+    @Inject
+    MessageSender sender;
 
-    @POST
-    @Path("/multipart")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_XML)
-    public Response processServiceMultipart(MultipartFormDataInput mpfData) {
-        try {
-            String resp = messageServiceMultipart.processMultipart(mpfData);
-            return Response.ok(resp).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Multipart error: " + e).build();
-        }
-    }
+    @ConfigProperty(name = "payment.queue.name")
+    String queueName;
 
     @POST
     @Path("/jsonbase64")
@@ -35,10 +26,11 @@ public class MessageResource {
     @Produces(MediaType.APPLICATION_XML)
     public Response processServiceJsonBase64(String jsonBody) {
         try {
-            String xmlResponse = MessageServiceJsonBase64.processJsonBase64(jsonBody);
-            return Response.ok(xmlResponse, MediaType.APPLICATION_XML).build();
+            String pain01 = messageServiceJsonBase64.getPain001FromJsonBase64(jsonBody);
+            sender.sendXml(queueName, pain01);
+            return Response.ok(pain01, MediaType.APPLICATION_XML).build();
         } catch (Exception e) {
-            String errorXml = "<error>\nInvalid JSON or Base64 data:\n " + e + "\n</error>";
+            String errorXml = "<error>Invalid JSON or Base64 data: " + e + "</error>";
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(errorXml)
                     .type(MediaType.APPLICATION_XML)
